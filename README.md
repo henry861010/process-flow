@@ -23,14 +23,18 @@ Provides the interactive environment for the integration engineer.
 * *Suggested Tech Stack: Next.js, TypeScript, Three.js*
 
 ### 2. Data Structure (The Standard)
-#### Basic structure
-* **rangeType** is used to defined the **range** of the field, if it is none, then the value could be any in data type. or it would be in the range of the definition corrspond to rangeType
-|   Type   |  range   | range | range |
-| -------- | -------- | ------- | ------- |
-|   Bool   | - | - | - | - |
-|   Int    | rangeType = 1, the value could be only in [bottom value, upper value] | rangeType = 2, the value must be option in [value1, value2, ...] | - |
-|   Float  | rangeType = 1, the value could be only in [bottom value, upper value] | rangeType = 2, the value must be option in [value1, value2, ...] | - |
+### Basic Structure
 
+| Data Type | `rangeType = None` | `rangeType = 1` (Bounded) | `rangeType = 2` (Discrete Options) |
+| :--- | :--- | :--- | :--- |
+| **Bool** | Any valid boolean | - | - |
+| **Int** | Any valid integer | Value must be within `[bottom_value, upper_value]` | Value must be an option from `[value1, value2, ...]` |
+| **Float** | Any valid float | Value must be within `[bottom_value, upper_value]` | Value must be an option from `[value1, value2, ...]` |
+
+**Field Definitions:**
+* **`rangeType`**: Defines the allowed boundary or options for the field. 
+  * If `None` (or undefined), the value can be anything valid within that specific data type. 
+  * If defined, the value is strictly constrained to the rules corresponding to that `rangeType`.
 
 #### Framework-defined structure
 1. **geoemetry_s**
