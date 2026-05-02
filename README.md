@@ -22,15 +22,21 @@ Provides the interactive environment for the integration engineer.
 * Renders the generated 3D geometries directly in the browser for rapid visual feedback.
 * *Suggested Tech Stack: Next.js, TypeScript, Three.js*
 
-### 2. Backend (Geometry & Meshing Engine)
-The computational powerhouse of the framework.
-* **Geometry Generator:** Translates the standardized process data into accurate 3D boolean operations and topological structures.
-* **Mesh Generation:** Processes geometric data into structured or unstructured grids. Built to efficiently handle the large-scale arrays and matrices required for high-fidelity physical simulations.
-* **Database Integration:** Manages the storage, querying, and version control of process flows.
-* *Suggested Tech Stack: Python, NumPy (for intensive data processing), PostgreSQL*
+### 2. Data Structure (The Standard)
+#### Basic structure
+* **rangeType** is used to defined the **range** of the field, if it is none, then the value could be any in data type. or it would be in the range of the definition corrspond to rangeType
+|   Type   |  range   | range | range |
+| -------- | -------- | ------- | ------- |
+|   Bool   | - | - | - | - |
+|   Int    | rangeType = 1, the value could be only in [bottom value, upper value] | rangeType = 2, the value must be option in [value1, value2, ...] | - |
+|   Float  | rangeType = 1, the value could be only in [bottom value, upper value] | rangeType = 2, the value must be option in [value1, value2, ...] | - |
 
-### 3. Data Structure (The Standard)
-A robust schema (e.g., JSON/XML-based) that acts as the single source of truth. It makes it trivial to serialize the entire process flow, store it, and share it across the organization without losing simulation fidelity.
+
+#### Framework-defined structure
+1. **geoemetry_s**
+2. **processPrototype_s**
+3. **process_s**
+4. **processFlow_s**
 
 ## Getting Started
 
