@@ -33,9 +33,11 @@ export function exportTemplateAndInstance(options: {
   flowTemplate: ProcessFlowTemplate;
   instance: ProcessFlowInstance;
   referencedStepTemplates: ProcessStepTemplate[];
+  processStepTemplateCategories?: ProcessCatalog["processStepTemplateCategories"];
 }) {
   const payload: ProcessFlowExport = {
     schemaVersion: "process-flow-v1",
+    processStepTemplateCategories: options.processStepTemplateCategories,
     processStepTemplates: options.referencedStepTemplates,
     processFlowTemplates: [options.flowTemplate],
     processFlowInstances: [options.instance]
@@ -47,6 +49,7 @@ export function exportTemplateAndInstance(options: {
 export function exportCatalog(catalog: ProcessCatalog) {
   const payload: ProcessFlowExport = {
     schemaVersion: "process-flow-v1",
+    processStepTemplateCategories: catalog.processStepTemplateCategories,
     processStepTemplates: catalog.processStepTemplates,
     processFlowTemplates: catalog.processFlowTemplates
   };

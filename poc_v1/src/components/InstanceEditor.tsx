@@ -2,6 +2,10 @@
 
 import { Download, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { exportInstance } from "@/domain/export";
 import { addInstanceToStorage } from "@/domain/storage";
 import type {
@@ -112,7 +116,7 @@ export function InstanceEditor({ catalog, template, onDone, onCancel }: Instance
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-soft">
+    <Card className="gap-0 rounded-lg py-0 shadow-soft">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
@@ -123,23 +127,25 @@ export function InstanceEditor({ catalog, template, onDone, onCancel }: Instance
             Fill parameters to create a process flow instance from template v{template.version}.
           </p>
         </div>
-        <button
+        <Button
           aria-label="Close editor"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+          className="border-slate-200 text-slate-600 hover:bg-slate-50"
+          size="icon-lg"
           title="Close"
           type="button"
+          variant="outline"
           onClick={onCancel}
         >
           <X aria-hidden="true" className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
 
       <div className="px-5 py-5">
-        <label className="block text-sm font-semibold text-slate-800" htmlFor="product-name">
+        <Label className="block text-sm font-semibold text-slate-800" htmlFor="product-name">
           Product / instance name
-        </label>
-        <input
-          className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4"
+        </Label>
+        <Input
+          className="mt-2 h-10"
           id="product-name"
           placeholder="Example: MI450"
           value={productName}
@@ -213,15 +219,15 @@ export function InstanceEditor({ catalog, template, onDone, onCancel }: Instance
       </div>
 
       <div className="flex justify-end border-t border-slate-200 px-5 py-4">
-        <button
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white transition hover:bg-teal-800"
+        <Button
+          className="h-10 px-4 font-semibold"
           type="button"
           onClick={handleExport}
         >
           <Download aria-hidden="true" className="h-4 w-4" />
           Export instance
-        </button>
+        </Button>
       </div>
-    </section>
+    </Card>
   );
 }

@@ -5,6 +5,8 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AddProcessStepDialog } from "@/components/AddProcessStepDialog";
 import { StepTemplateLibrary } from "@/components/StepTemplateLibrary";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { addStepTemplateToStorage, loadCatalog } from "@/domain/storage";
 import type { ProcessCatalog } from "@/domain/types";
 
@@ -22,7 +24,7 @@ export default function ProcessStepTemplatePage() {
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <header className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-soft sm:px-5">
+        <Card className="rounded-lg px-4 py-4 shadow-soft sm:px-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <Link
@@ -44,16 +46,16 @@ export default function ProcessStepTemplatePage() {
               </p>
             </div>
 
-            <button
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white transition hover:bg-teal-800"
+            <Button
+              className="h-10 px-4 font-semibold"
               type="button"
               onClick={() => setAddStepOpen(true)}
             >
               <Plus aria-hidden="true" className="h-4 w-4" />
               Add process step
-            </button>
+            </Button>
           </div>
-        </header>
+        </Card>
 
         <StepTemplateLibrary templates={catalog.processStepTemplates} />
       </div>

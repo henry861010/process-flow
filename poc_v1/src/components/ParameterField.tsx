@@ -1,12 +1,35 @@
 "use client";
 
 import { Plus, Trash2 } from "lucide-react";
-import type { FieldDefinition, FieldPrimitiveValue, FieldValue, FieldValuePayload } from "@/domain/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import type {
+  FieldDefinition,
+  FieldPrimitiveValue,
+  FieldValue,
+  FieldValuePayload,
+  PrimitiveOptionValue,
+  ReferenceValue
+} from "@/domain/types";
 import {
   createFieldGroupArrayValue,
   createRepeatItem,
+  initialValueForField,
+  isArrayValueType,
   isFieldGroupArrayValue,
-  isRepeaterField
+  isNumericValueType,
+  isRepeaterField,
+  itemValueType
 } from "@/domain/utils";
 
 type ParameterFieldProps = {
@@ -25,22 +48,114 @@ function parseNumber(value: string): FieldPrimitiveValue {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function itemLabel(field: FieldDefinition, index: number) {
+function itemLabel(field: FieldDefinition, itemIndex: number, fallbackLabel?: string) {
+  if (fallbackLabel) {
+    return fallbackLabel;
+  }
+
   const template = field.repeatDefinition?.itemLabelTemplate ?? `${field.label} {{index}}`;
 
-  return template.replaceAll("{{index}}", String(index));
+  return template.replaceAll("{{index}}", String(itemIndex));
 }
 
-function optionValue(value: FieldValuePayload) {
-  if (typeof value === "string") {
+function primitiveKey(value: PrimitiveOptionValue) {
+  return String(value);
+}
+
+function primitiveValue(value: FieldValuePayload): PrimitiveOptionValue | null {
+  if (typeof value === "string" || typeof value === "number") {
     return value;
   }
 
-  if (value && typeof value === "object" && !Array.isArray(value) && "entityId" in value) {
-    return value.entityId;
+  return null;
+}
+
+function primitiveArrayValue(value: FieldValuePayload): PrimitiveOptionValue[] {
+  if (!Array.isArray(value)) {
+    return [];
   }
 
-  return "";
+  return value.filter((item): item is PrimitiveOptionValue =>
+    typeof item === "string" || typeof item === "number"
+  );
+}
+
+function referenceValue(value: FieldValuePayload): ReferenceValue | null {
+  if (value && typeof value === "object" && !Array.isArray(value) && "entityId" in value) {
+    return value as ReferenceValue;
+  }
+
+  return null;
+}
+
+function referenceArrayValue(value: FieldValuePayload): ReferenceValue[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is ReferenceValue =>
+      Boolean(item && typeof item === "object" && "entityId" in item)
+  );
+}
+
+function optionIsSelected(currentValue: FieldValuePayload, optionValue: PrimitiveOptionValue) {
+  if (Array.isArray(currentValue)) {
+    return primitiveArrayValue(currentValue).some((item) => item === optionValue);
+  }
+
+  return primitiveValue(currentValue) === optionValue;
+}
+
+function updatePrimitiveSelection(
+  field: FieldDefinition,
+  currentValue: FieldValuePayload,
+  optionValue: PrimitiveOptionValue,
+  checked: boolean
+): FieldValuePayload {
+  if (field.selectionMode === "multiple" || isArrayValueType(field.valueType)) {
+    const currentValues = primitiveArrayValue(currentValue);
+
+    if (checked) {
+      const nextValues = currentValues.some((item) => item === optionValue)
+        ? currentValues
+        : [...currentValues, optionValue];
+
+      return nextValues as string[] | number[];
+    }
+
+    return currentValues.filter((item) => item !== optionValue) as string[] | number[];
+  }
+
+  return checked ? optionValue : null;
+}
+
+function updateReferenceSelection(
+  field: FieldDefinition,
+  currentValue: FieldValuePayload,
+  option: ReferenceValue,
+  checked: boolean
+) {
+  if (field.selectionMode === "multiple" || isArrayValueType(field.valueType)) {
+    const currentValues = referenceArrayValue(currentValue);
+
+    if (checked) {
+      return currentValues.some((item) => item.entityId === option.entityId)
+        ? currentValues
+        : [...currentValues, option];
+    }
+
+    return currentValues.filter((item) => item.entityId !== option.entityId);
+  }
+
+  return checked ? option : null;
+}
+
+function nextRepeatOffset(field: FieldDefinition, items: { index: number }[]) {
+  const indexBase = field.repeatDefinition?.indexBase ?? 1;
+  const maxIndex = items.reduce((currentMax, item) => Math.max(currentMax, item.index), indexBase - 1);
+
+  return maxIndex - indexBase + 1;
 }
 
 function ParameterRepeaterField({ field, value, idPrefix, onChange }: ParameterFieldProps) {
@@ -71,7 +186,10 @@ function ParameterRepeaterField({ field, value, idPrefix, onChange }: ParameterF
     onChange({
       ...value,
       value: {
-        items: [...groupValue.items, createRepeatItem(field, groupValue.items.length)]
+        items: [
+          ...groupValue.items,
+          createRepeatItem(field, nextRepeatOffset(field, groupValue.items))
+        ]
       }
     });
   };
@@ -117,40 +235,40 @@ function ParameterRepeaterField({ field, value, idPrefix, onChange }: ParameterF
     <div className="rounded-md border border-slate-200 bg-white p-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <label className="block text-sm font-semibold text-slate-800" htmlFor={fieldId}>
+          <Label className="block text-sm font-semibold text-slate-800" htmlFor={fieldId}>
             {field.label}
             {field.required ? <span className="ml-1 text-rose-600">*</span> : null}
-          </label>
+          </Label>
           <p className="mt-1 text-xs leading-5 text-slate-500" id={describedBy}>
             {field.description}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span
-            className="inline-flex h-9 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600"
+          <Badge
+            className="h-9 rounded-md border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600"
+            variant="outline"
             id={fieldId}
           >
             {groupValue.items.length} items
-          </span>
-          <button
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          </Badge>
+          <Button
+            className="h-9 px-3 font-semibold"
             disabled={!canAdd}
             type="button"
+            variant="outline"
             onClick={addItem}
           >
             <Plus aria-hidden="true" className="h-4 w-4" />
             Item
-          </button>
-          <label className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600">
-            <input
+          </Button>
+          <Label className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600">
+            <Checkbox
               checked={value.unknown}
-              className="h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
-              type="checkbox"
-              onChange={(event) => updateUnknown(event.target.checked)}
+              onCheckedChange={(checked) => updateUnknown(Boolean(checked))}
             />
             Unknown
-          </label>
+          </Label>
         </div>
       </div>
 
@@ -164,50 +282,216 @@ function ParameterRepeaterField({ field, value, idPrefix, onChange }: ParameterF
         </p>
       ) : (
         <div className="mt-3 grid gap-3">
-          {groupValue.items.map((item) => (
-            <div className="rounded-md border border-slate-200 bg-slate-50" key={item.itemId}>
-              <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-3 py-2">
-                <h4 className="text-sm font-semibold text-slate-800">{itemLabel(field, item.index)}</h4>
-                <button
-                  aria-label={`Remove ${itemLabel(field, item.index)}`}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={disabled || groupValue.items.length <= minItems}
-                  title="Remove item"
-                  type="button"
-                  onClick={() => removeItem(item.itemId)}
-                >
-                  <Trash2 aria-hidden="true" className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="grid gap-3 p-3">
-                {childFields.map((childField) => {
-                  const childValue = item.fieldValues.find(
-                    (fieldValue) => fieldValue.fieldId === childField.id
-                  );
+          {groupValue.items.map((item) => {
+            const label = itemLabel(field, item.index, item.label);
 
-                  if (!childValue) {
-                    return (
-                      <p className="text-sm text-rose-700" key={childField.id}>
-                        Missing value for {childField.label}.
-                      </p>
+            return (
+              <div className="rounded-md border border-slate-200 bg-slate-50" key={item.itemId}>
+                <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-3 py-2">
+                  <h4 className="text-sm font-semibold text-slate-800">{label}</h4>
+                  <Button
+                    aria-label={`Remove ${label}`}
+                    className="h-8 w-8 border-slate-200 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-700"
+                    disabled={disabled || groupValue.items.length <= minItems}
+                    size="icon"
+                    title="Remove item"
+                    type="button"
+                    variant="outline"
+                    onClick={() => removeItem(item.itemId)}
+                  >
+                    <Trash2 aria-hidden="true" className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid gap-3 p-3">
+                  {childFields.map((childField) => {
+                    const childValue = item.fieldValues.find(
+                      (fieldValue) => fieldValue.fieldId === childField.id
                     );
-                  }
 
-                  return (
-                    <ParameterField
-                      field={childField}
-                      idPrefix={`${fieldId}-${item.itemId}`}
-                      key={childField.id}
-                      value={childValue}
-                      onChange={(nextFieldValue) => updateItemFieldValue(item.itemId, nextFieldValue)}
-                    />
-                  );
-                })}
+                    if (!childValue) {
+                      return (
+                        <p className="text-sm text-rose-700" key={childField.id}>
+                          Missing value for {childField.label}.
+                        </p>
+                      );
+                    }
+
+                    return (
+                      <ParameterField
+                        field={childField}
+                        idPrefix={`${fieldId}-${item.itemId}`}
+                        key={childField.id}
+                        value={childValue}
+                        onChange={(nextFieldValue) => updateItemFieldValue(item.itemId, nextFieldValue)}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+    </div>
+  );
+}
+
+function PrimitiveOptionField({
+  disabled,
+  field,
+  fieldId,
+  value,
+  onChange
+}: {
+  disabled: boolean;
+  field: FieldDefinition;
+  fieldId: string;
+  value: FieldValuePayload;
+  onChange: (nextValue: FieldValuePayload) => void;
+}) {
+  const options = field.optionSource?.options ?? [];
+  const isMultiple = field.selectionMode === "multiple" || isArrayValueType(field.valueType);
+
+  if (!options.length) {
+    return (
+      <p className="min-h-10 flex-1 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+        No options configured.
+      </p>
+    );
+  }
+
+  if (!isMultiple && field.controlType === "select") {
+    const currentValue = primitiveValue(value);
+
+    return (
+      <Select
+        disabled={disabled}
+        id={fieldId}
+        value={currentValue === null ? null : primitiveKey(currentValue)}
+        onValueChange={(nextValue) => {
+          const selected = options.find((option) => primitiveKey(option.value) === nextValue);
+
+          onChange(selected?.value ?? null);
+        }}
+      >
+        <SelectTrigger className="h-10 min-w-0 flex-1 bg-white">
+          <SelectValue placeholder="Select" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem
+              disabled={option.disabled}
+              key={primitiveKey(option.value)}
+              value={primitiveKey(option.value)}
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  return (
+    <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
+      {options.map((option) => {
+        const checked = optionIsSelected(value, option.value);
+
+        return (
+          <Label
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+            key={primitiveKey(option.value)}
+          >
+            <Checkbox
+              checked={checked}
+              disabled={disabled || option.disabled}
+              onCheckedChange={(nextChecked) =>
+                onChange(updatePrimitiveSelection(field, value, option.value, Boolean(nextChecked)))
+              }
+            />
+            <span>{option.label}</span>
+          </Label>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReferenceOptionField({
+  disabled,
+  field,
+  fieldId,
+  value,
+  onChange
+}: {
+  disabled: boolean;
+  field: FieldDefinition;
+  fieldId: string;
+  value: FieldValuePayload;
+  onChange: (nextValue: FieldValuePayload) => void;
+}) {
+  const options = field.reference?.mockOptions ?? [];
+  const isMultiple = field.selectionMode === "multiple" || isArrayValueType(field.valueType);
+
+  if (!options.length) {
+    return (
+      <p className="min-h-10 flex-1 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+        No reference mock options configured.
+      </p>
+    );
+  }
+
+  if (!isMultiple) {
+    const currentValue = referenceValue(value);
+
+    return (
+      <Select
+        disabled={disabled}
+        id={fieldId}
+        value={currentValue?.entityId ?? null}
+        onValueChange={(nextValue) => {
+          const selected = options.find((option) => option.entityId === nextValue);
+
+          onChange(selected ?? null);
+        }}
+      >
+        <SelectTrigger className="h-10 min-w-0 flex-1 bg-white">
+          <SelectValue placeholder="Select" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.entityId} value={option.entityId}>
+              {option.displayName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  const selectedValues = referenceArrayValue(value);
+
+  return (
+    <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
+      {options.map((option) => {
+        const checked = selectedValues.some((selected) => selected.entityId === option.entityId);
+
+        return (
+          <Label
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+            key={option.entityId}
+          >
+            <Checkbox
+              checked={checked}
+              disabled={disabled}
+              onCheckedChange={(nextChecked) =>
+                onChange(updateReferenceSelection(field, value, option, Boolean(nextChecked)))
+              }
+            />
+            <span>{option.displayName}</span>
+          </Label>
+        );
+      })}
     </div>
   );
 }
@@ -224,9 +508,12 @@ export function ParameterField({ field, value, idPrefix, onChange }: ParameterFi
     );
   }
 
-  const disabled = value.unknown;
+  const disabled = value.unknown || field.controlType === "computed";
   const fieldId = `${idPrefix ? `${idPrefix}-` : ""}${field.id}`;
   const describedBy = `${fieldId}-description`;
+  const isPrimitiveOption =
+    field.controlType === "select" ||
+    (field.controlType === "checkbox" && field.valueType !== "boolean");
 
   const updateValue = (nextValue: FieldValuePayload) => {
     onChange({
@@ -239,86 +526,66 @@ export function ParameterField({ field, value, idPrefix, onChange }: ParameterFi
     onChange({
       ...value,
       unknown,
-      value: unknown ? null : value.value
+      value: unknown ? null : value.value ?? initialValueForField(field)
     });
   };
 
   return (
     <div className="grid gap-2 rounded-md border border-slate-200 bg-white p-3 sm:grid-cols-[minmax(180px,240px)_1fr_auto] sm:items-start">
       <div className="min-w-0">
-        <label className="block text-sm font-semibold text-slate-800" htmlFor={fieldId}>
+        <Label className="block text-sm font-semibold text-slate-800" htmlFor={fieldId}>
           {field.label}
           {field.required ? <span className="ml-1 text-rose-600">*</span> : null}
-        </label>
+        </Label>
         <p className="mt-1 text-xs leading-5 text-slate-500" id={describedBy}>
           {field.description}
         </p>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
         {field.controlType === "number" ? (
-          <input
+          <Input
             aria-describedby={describedBy}
-            className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4 disabled:bg-slate-100"
+            className="h-10 min-w-0 flex-1 bg-white disabled:bg-slate-100"
             disabled={disabled}
             id={fieldId}
+            max={field.validation?.max}
             min={field.validation?.min}
+            step={itemValueType(field.valueType) === "integer" ? 1 : "any"}
             type="number"
             value={typeof value.value === "number" ? value.value : ""}
             onChange={(event) => updateValue(parseNumber(event.target.value))}
           />
-        ) : field.controlType === "checkbox" || field.valueType === "boolean" ? (
-          <input
-            aria-describedby={describedBy}
-            checked={Boolean(value.value)}
-            className="h-5 w-5 rounded border-slate-300 text-teal-700 focus:ring-teal-700 disabled:opacity-50"
+        ) : field.controlType === "checkbox" && field.valueType === "boolean" ? (
+          <div className="flex h-10 items-center">
+            <Checkbox
+              aria-describedby={describedBy}
+              checked={Boolean(value.value)}
+              disabled={disabled}
+              id={fieldId}
+              onCheckedChange={(checked) => updateValue(Boolean(checked))}
+            />
+          </div>
+        ) : isPrimitiveOption ? (
+          <PrimitiveOptionField
             disabled={disabled}
-            id={fieldId}
-            type="checkbox"
-            onChange={(event) => updateValue(event.target.checked)}
+            field={field}
+            fieldId={fieldId}
+            value={value.value}
+            onChange={updateValue}
           />
-        ) : field.controlType === "select" && field.optionSource?.options?.length ? (
-          <select
-            aria-describedby={describedBy}
-            className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4 disabled:bg-slate-100"
+        ) : field.controlType === "referenceSelect" ? (
+          <ReferenceOptionField
             disabled={disabled}
-            id={fieldId}
-            value={typeof value.value === "string" ? value.value : ""}
-            onChange={(event) => updateValue(event.target.value)}
-          >
-            <option value="">Select</option>
-            {field.optionSource.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        ) : field.controlType === "referenceSelect" && field.reference?.mockOptions?.length ? (
-          <select
-            aria-describedby={describedBy}
-            className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4 disabled:bg-slate-100"
-            disabled={disabled}
-            id={fieldId}
-            value={optionValue(value.value)}
-            onChange={(event) => {
-              const selected = field.reference?.mockOptions?.find(
-                (option) => option.entityId === event.target.value
-              );
-
-              updateValue(selected ?? null);
-            }}
-          >
-            <option value="">Select</option>
-            {field.reference.mockOptions.map((option) => (
-              <option key={option.entityId} value={option.entityId}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            field={field}
+            fieldId={fieldId}
+            value={value.value}
+            onChange={updateValue}
+          />
         ) : field.controlType === "computed" ? (
-          <input
+          <Input
             aria-describedby={describedBy}
-            className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 bg-slate-100 px-3 text-sm text-slate-600 outline-none"
+            className="h-10 min-w-0 flex-1 bg-slate-100 text-slate-600"
             disabled
             id={fieldId}
             type="text"
@@ -326,33 +593,36 @@ export function ParameterField({ field, value, idPrefix, onChange }: ParameterFi
             readOnly
           />
         ) : (
-          <input
+          <Input
             aria-describedby={describedBy}
-            className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4 disabled:bg-slate-100"
+            className="h-10 min-w-0 flex-1 bg-white disabled:bg-slate-100"
             disabled={disabled}
             id={fieldId}
-            type="text"
+            maxLength={field.validation?.maxLength}
+            minLength={field.validation?.minLength}
+            type={isNumericValueType(field.valueType) ? "number" : "text"}
             value={typeof value.value === "string" ? value.value : ""}
             onChange={(event) => updateValue(event.target.value)}
           />
         )}
 
         {field.unit ? (
-          <span className="inline-flex h-10 shrink-0 items-center rounded-md border border-slate-200 bg-slate-50 px-2 text-xs font-semibold text-slate-600">
+          <Badge
+            className="h-10 shrink-0 rounded-md border-slate-200 bg-slate-50 px-2 text-xs font-semibold text-slate-600"
+            variant="outline"
+          >
             {field.unit}
-          </span>
+          </Badge>
         ) : null}
       </div>
 
-      <label className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600">
-        <input
+      <Label className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-md border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600">
+        <Checkbox
           checked={value.unknown}
-          className="h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
-          type="checkbox"
-          onChange={(event) => updateUnknown(event.target.checked)}
+          onCheckedChange={(checked) => updateUnknown(Boolean(checked))}
         />
         Unknown
-      </label>
+      </Label>
     </div>
   );
 }

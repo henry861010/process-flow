@@ -2,7 +2,20 @@
 
 import { Database, Download, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { exportInstance, exportTemplateAndInstance } from "@/domain/export";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { exportInstance } from "@/domain/export";
 import { addFlowTemplateToStorage, addInstanceToStorage } from "@/domain/storage";
 import type {
   ProcessCatalog,
@@ -175,7 +188,7 @@ export function FlowBuilder({ catalog, onCatalogChange, onDone, onCancel }: Flow
     onDone(savedInstance);
   };
 
-  const handleSaveTemplateAndExport = () => {
+  const handleSaveTemplate = () => {
     const nextErrors = validateDraft();
     setErrors(nextErrors);
 
@@ -192,16 +205,11 @@ export function FlowBuilder({ catalog, onCatalogChange, onDone, onCancel }: Flow
     });
     const savedInstance = savedStore.processFlowInstances[savedStore.processFlowInstances.length - 1];
 
-    exportTemplateAndInstance({
-      flowTemplate: draftFlowTemplate,
-      instance: savedInstance,
-      referencedStepTemplates: referencedStepTemplates(catalog, draftFlowTemplate)
-    });
     onDone(savedInstance);
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-soft">
+    <Card className="gap-0 rounded-lg py-0 shadow-soft">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
@@ -212,51 +220,54 @@ export function FlowBuilder({ catalog, onCatalogChange, onDone, onCancel }: Flow
             Add process steps and fill parameters immediately while the flow template is drafted.
           </p>
         </div>
-        <button
+        <Button
           aria-label="Close builder"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+          className="border-slate-200 text-slate-600 hover:bg-slate-50"
+          size="icon-lg"
           title="Close"
           type="button"
+          variant="outline"
           onClick={onCancel}
         >
           <X aria-hidden="true" className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
 
       <div className="px-5 py-5">
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="block text-sm font-semibold text-slate-800" htmlFor="technology-name">
+          <Label className="block text-sm font-semibold text-slate-800" htmlFor="technology-name">
             Technology name
-            <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm font-normal outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4"
+            <Input
+              className="mt-2 h-10 font-normal"
               id="technology-name"
               placeholder="Example: Demo temporary stack"
               value={technologyName}
               onChange={(event) => setTechnologyName(event.target.value)}
             />
-          </label>
+          </Label>
 
-          <label className="block text-sm font-semibold text-slate-800" htmlFor="new-product-name">
+          <Label className="block text-sm font-semibold text-slate-800" htmlFor="new-product-name">
             Product / instance name
-            <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm font-normal outline-none ring-teal-600/20 transition focus:border-teal-700 focus:ring-4"
+            <Input
+              className="mt-2 h-10 font-normal"
               id="new-product-name"
               placeholder="Example: MI450 experiment"
               value={productName}
               onChange={(event) => setProductName(event.target.value)}
             />
-          </label>
+          </Label>
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          <Button
+            className="h-10 px-4 font-semibold"
+            variant="outline"
             type="button"
             onClick={() => setStepPickerOpen(true)}
           >
             <Plus aria-hidden="true" className="h-4 w-4" />
             Add step
-          </button>
+          </Button>
         </div>
 
         {errors.length > 0 ? (
@@ -338,46 +349,38 @@ export function FlowBuilder({ catalog, onCatalogChange, onDone, onCancel }: Flow
       </div>
 
       <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:justify-end">
-        <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        <Button
+          className="h-10 px-4 font-semibold"
+          variant="outline"
           type="button"
           onClick={handleExportOnly}
         >
           <Download aria-hidden="true" className="h-4 w-4" />
           Export only
-        </button>
-        <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white transition hover:bg-teal-800"
+        </Button>
+        <Button
+          className="h-10 px-4 font-semibold"
           type="button"
-          onClick={handleSaveTemplateAndExport}
+          onClick={handleSaveTemplate}
         >
           <Database aria-hidden="true" className="h-4 w-4" />
-          Save template & export
-        </button>
+          Save template
+        </Button>
       </div>
 
-      {stepPickerOpen ? (
-        <div className="fixed inset-0 z-40 flex items-start justify-center bg-slate-950/35 px-4 py-16">
-          <div className="w-full max-w-2xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <div>
-                <h3 className="text-base font-semibold text-slate-950">Choose process step</h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Pick one reusable step template to append to this flow.
-                </p>
-              </div>
-              <button
-                aria-label="Close step picker"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50"
-                title="Close"
-                type="button"
-                onClick={() => setStepPickerOpen(false)}
-              >
-                <X aria-hidden="true" className="h-4 w-4" />
-              </button>
-            </div>
+      <Dialog open={stepPickerOpen} onOpenChange={setStepPickerOpen}>
+        <DialogContent className="max-w-2xl gap-0 overflow-hidden rounded-lg p-0 sm:max-w-2xl">
+          <DialogHeader className="border-b border-slate-200 px-5 py-4">
+            <DialogTitle className="text-base font-semibold text-slate-950">
+              Choose process step
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              Pick one reusable step template to append to this flow.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="max-h-[60vh] overflow-y-auto p-4">
+          <ScrollArea className="max-h-[60vh]">
+            <div className="p-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 {catalog.processStepTemplates.map((template) => {
                   const hasRepeater = template.fieldDefinitions.some(
@@ -385,10 +388,11 @@ export function FlowBuilder({ catalog, onCatalogChange, onDone, onCancel }: Flow
                   );
 
                   return (
-                    <button
-                      className="rounded-md border border-slate-200 bg-white p-4 text-left transition hover:border-teal-500 hover:bg-teal-50"
+                    <Button
+                      className="h-auto flex-col items-stretch justify-start rounded-md border-slate-200 bg-white p-4 text-left text-slate-950 hover:border-teal-500 hover:bg-teal-50"
                       key={`${template.id}@${template.version}`}
                       type="button"
+                      variant="outline"
                       onClick={() => addStep(template)}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -399,24 +403,27 @@ export function FlowBuilder({ catalog, onCatalogChange, onDone, onCancel }: Flow
                           <p className="mt-1 truncate text-xs text-slate-500">
                             {template.id} / v{template.version}
                           </p>
+                          <p className="mt-1 truncate text-xs text-slate-500">
+                            {template.categoryId}
+                          </p>
                         </div>
                         {hasRepeater ? (
-                          <span className="rounded bg-cyan-50 px-2 py-1 text-xs font-semibold text-cyan-700">
+                          <Badge className="bg-cyan-50 text-cyan-700" variant="secondary">
                             repeater
-                          </span>
+                          </Badge>
                         ) : null}
                       </div>
                       <p className="mt-3 line-clamp-2 text-xs leading-5 text-slate-600">
                         {template.purpose}
                       </p>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
             </div>
-          </div>
-        </div>
-      ) : null}
-    </section>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 }

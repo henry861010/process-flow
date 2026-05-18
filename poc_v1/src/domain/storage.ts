@@ -1,10 +1,11 @@
 import { seedCatalog } from "@/data/seedCatalog";
 import type { ProcessCatalog, ProcessFlowInstance, ProcessInstanceStore } from "./types";
 
-export const CATALOG_STORAGE_KEY = "process-flow.catalog.v1";
-export const INSTANCE_STORAGE_KEY = "process-flow.instances.v1";
+export const CATALOG_STORAGE_KEY = "process-flow.catalog.v1.field-definitions";
+export const INSTANCE_STORAGE_KEY = "process-flow.instances.v1.field-definitions";
 
 const emptyCatalog: ProcessCatalog = {
+  processStepTemplateCategories: [],
   processStepTemplates: [],
   processFlowTemplates: []
 };
@@ -44,6 +45,9 @@ function templateKey(id: string, version: string) {
 }
 
 function mergeCatalog(seed: ProcessCatalog, additions: ProcessCatalog): ProcessCatalog {
+  const categoryMap = new Map(
+    (seed.processStepTemplateCategories ?? []).map((category) => [category.id, category])
+  );
   const stepMap = new Map(
     seed.processStepTemplates.map((template) => [
       templateKey(template.id, template.version),
@@ -57,6 +61,10 @@ function mergeCatalog(seed: ProcessCatalog, additions: ProcessCatalog): ProcessC
     ])
   );
 
+  for (const category of additions.processStepTemplateCategories ?? []) {
+    categoryMap.set(category.id, category);
+  }
+
   for (const template of additions.processStepTemplates) {
     stepMap.set(templateKey(template.id, template.version), template);
   }
@@ -66,6 +74,7 @@ function mergeCatalog(seed: ProcessCatalog, additions: ProcessCatalog): ProcessC
   }
 
   return {
+    processStepTemplateCategories: Array.from(categoryMap.values()),
     processStepTemplates: Array.from(stepMap.values()),
     processFlowTemplates: Array.from(flowMap.values())
   };

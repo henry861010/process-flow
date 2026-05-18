@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { DemoResetButton } from "@/components/DemoResetButton";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,8 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className="font-sans">
+      <body>
+        <TooltipProvider>
+          {children}
+          <DemoResetButton />
+        </TooltipProvider>
+      </body>
     </html>
   );
 }

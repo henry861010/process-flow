@@ -1,6 +1,8 @@
 "use client";
 
 import { Layers3 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ProcessStepTemplate } from "@/domain/types";
 
 type StepTemplateLibraryProps = {
@@ -9,18 +11,20 @@ type StepTemplateLibraryProps = {
 
 export function StepTemplateLibrary({ templates }: StepTemplateLibraryProps) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-soft">
-      <div className="border-b border-slate-200 px-5 py-4">
+    <Card className="gap-0 rounded-lg py-0 shadow-soft">
+      <CardHeader className="border-b border-slate-200 px-5 py-4">
         <div className="flex items-center gap-2">
           <Layers3 aria-hidden="true" className="h-5 w-5 text-cyan-700" />
-          <h2 className="text-base font-semibold text-slate-950">Process step library</h2>
+          <CardTitle className="text-base font-semibold text-slate-950">
+            Process step library
+          </CardTitle>
         </div>
         <p className="mt-1 text-sm text-slate-500">
           Server-maintained templates plus locally added process steps.
         </p>
-      </div>
+      </CardHeader>
 
-      <div className="divide-y divide-slate-100">
+      <CardContent className="divide-y divide-slate-100 p-0">
         {templates.map((template) => (
           <div className="px-5 py-4" key={`${template.id}-${template.version}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -29,10 +33,13 @@ export function StepTemplateLibrary({ templates }: StepTemplateLibraryProps) {
                 <p className="mt-1 text-xs text-slate-500">
                   {template.id} / v{template.version}
                 </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {template.categoryId}
+                </p>
               </div>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              <Badge variant="secondary">
                 {template.fieldDefinitions.length} fields
-              </span>
+              </Badge>
             </div>
             <div className="mt-3 grid gap-2">
               {template.fieldDefinitions.length === 0 ? (
@@ -45,33 +52,39 @@ export function StepTemplateLibrary({ templates }: StepTemplateLibraryProps) {
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold text-slate-800">{field.label}</span>
-                      <span className="rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-500">
+                      <Badge variant="outline" className="h-5 bg-white text-[11px] text-slate-500">
                         {field.controlType}
-                      </span>
-                      <span className="rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-500">
+                      </Badge>
+                      <Badge variant="outline" className="h-5 bg-white text-[11px] text-slate-500">
                         {field.valueType}
-                      </span>
+                      </Badge>
+                      {field.selectionMode ? (
+                        <Badge variant="outline" className="h-5 bg-white text-[11px] text-slate-500">
+                          {field.selectionMode}
+                        </Badge>
+                      ) : null}
                       {field.unit ? (
-                        <span className="rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-500">
+                        <Badge variant="outline" className="h-5 bg-white text-[11px] text-slate-500">
                           {field.unit}
-                        </span>
+                        </Badge>
                       ) : null}
                       {field.required ? (
-                        <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[11px] font-semibold text-rose-700">
+                        <Badge variant="destructive" className="h-5 text-[11px]">
                           required
-                        </span>
+                        </Badge>
                       ) : null}
                     </div>
 
                     {field.controlType === "repeater" && field.repeatDefinition ? (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {field.repeatDefinition.itemFieldDefinitions.map((childField) => (
-                          <span
-                            className="inline-flex min-h-6 items-center rounded border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-600"
+                          <Badge
+                            className="min-h-6 bg-white text-[11px] text-slate-600"
+                            variant="outline"
                             key={childField.id}
                           >
                             {childField.label} / {childField.controlType}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     ) : null}
@@ -81,7 +94,7 @@ export function StepTemplateLibrary({ templates }: StepTemplateLibraryProps) {
             </div>
           </div>
         ))}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

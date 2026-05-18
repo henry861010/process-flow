@@ -6,6 +6,8 @@ import { CreateMenu } from "@/components/CreateMenu";
 import { FlowBuilder } from "@/components/FlowBuilder";
 import { FlowTemplateList } from "@/components/FlowTemplateList";
 import { InstanceEditor } from "@/components/InstanceEditor";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { exportCatalog } from "@/domain/export";
 import { loadCatalog } from "@/domain/storage";
 import type { ProcessCatalog, ProcessFlowInstance, ProcessFlowTemplate } from "@/domain/types";
@@ -38,7 +40,7 @@ export default function Home() {
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <header className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-soft sm:px-5">
+        <Card className="rounded-lg px-4 py-4 shadow-soft sm:px-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
@@ -61,7 +63,7 @@ export default function Home() {
               />
             </div>
           </div>
-        </header>
+        </Card>
 
         {lastExportedInstance ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-950">
@@ -72,14 +74,15 @@ export default function Home() {
                 <span className="font-mono text-xs">{lastExportedInstance.id}.json</span>
               </span>
             </div>
-            <button
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-teal-300 bg-white px-3 text-xs font-semibold text-teal-800 transition hover:bg-teal-100"
+            <Button
+              className="h-9 border-teal-300 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-100"
+              variant="outline"
               type="button"
               onClick={() => exportCatalog(catalog)}
             >
               <Database aria-hidden="true" className="h-4 w-4" />
               Export catalog
-            </button>
+            </Button>
           </div>
         ) : null}
 

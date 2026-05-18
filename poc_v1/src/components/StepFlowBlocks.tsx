@@ -1,6 +1,8 @@
 "use client";
 
 import { ChevronRight, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export type StepFlowBlock = {
   stepRefId: string;
@@ -25,8 +27,8 @@ export function StepFlowBlocks({
   onRemove
 }: StepFlowBlocksProps) {
   return (
-    <div className="overflow-x-auto pb-3">
-      <div className="flex min-w-max items-center gap-4">
+    <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden pb-3">
+      <div className="flex w-max min-w-full items-center gap-4">
         {steps.map((step, index) => {
           const selected = selectedStepRefId === step.stepRefId;
 
@@ -41,9 +43,10 @@ export function StepFlowBlocks({
                       : "border-slate-200 hover:border-slate-300"
                 }`}
               >
-                <button
+                <Button
                   aria-pressed={selected}
-                  className="block min-h-36 w-full px-4 py-4 text-left"
+                  className="block h-auto min-h-36 w-full justify-start rounded-md px-4 py-4 text-left hover:bg-transparent"
+                  variant="ghost"
                   type="button"
                   onClick={() => onSelect(step.stepRefId)}
                 >
@@ -61,24 +64,26 @@ export function StepFlowBlocks({
                       </h3>
                       <p className="mt-2 truncate text-xs text-slate-500">{step.detail}</p>
                       {step.fieldCount !== undefined ? (
-                        <p className="mt-4 text-xs font-semibold text-slate-600">
+                        <Badge variant="secondary" className="mt-4">
                           {step.fieldCount} fields
-                        </p>
+                        </Badge>
                       ) : null}
                     </div>
                   </div>
-                </button>
+                </Button>
 
                 {onRemove ? (
-                  <button
+                  <Button
                     aria-label={`Remove step ${step.index}`}
-                    className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition hover:bg-rose-50 hover:text-rose-700"
+                    className="absolute right-3 top-3 border-slate-200 bg-white text-slate-500 hover:bg-rose-50 hover:text-rose-700"
+                    size="icon"
                     title="Remove step"
                     type="button"
+                    variant="outline"
                     onClick={() => onRemove(step.stepRefId)}
                   >
                     <Trash2 aria-hidden="true" className="h-4 w-4" />
-                  </button>
+                  </Button>
                 ) : null}
               </div>
 
