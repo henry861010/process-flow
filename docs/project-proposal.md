@@ -14,7 +14,7 @@ Simulation team 目前常以 final package geometry 作為建模入口，例如 
 
 ## 3. 解法概覽
 
-PoC 會用 process flow template 描述一種封裝技術平台的標準流程，例如 CoWoS-L、CoWoS-S 或 CoWoS-R。當有特定 TV/Product，例如 MI450 或 GR100，系統會從對應 template 建立 process flow instance，讓工程師在每個站點填入實際 value、source、assumption、unknown 與 review status。
+PoC 會用 process flow template 描述一種封裝技術平台的標準流程，例如 xxxTech、yyyTech 或 zzzTech。當有特定 TV/Product，例如 aaaTV 或 bbbTV，系統會從對應 template 建立 process flow instance，讓工程師在每個站點填入實際 value、source、assumption、unknown 與 review status。
 
 核心設計原則是「站點與欄位定義可共用，產品實際值存在 instance」。相同 process station 例如 molding、underfill、die attach，不應在不同封裝技術中重複定義出語意不同的欄位。這能降低欄位命名漂移，也讓跨產品與跨封裝技術的比較更一致。
 
@@ -26,7 +26,7 @@ PoC 會用 process flow template 描述一種封裝技術平台的標準流程�
 
 ### 4.2 既有封裝技術的新 TV/Product
 
-當新 TV/Product 屬於既有封裝技術，例如 MI450 或 GR100 都使用 CoWoS-L 平台時，工程師不需要重新搭建整條 process flow。系統可從 CoWoS-L process flow template 建立 instance，並讓 simulation engineer 只針對該 TV/Product 補入站點 value 與資料來源。
+當新 TV/Product 屬於既有封裝技術，例如 aaaTV 或 bbbTV 都使用 xxxTech 平台時，工程師不需要重新搭建整條 process flow。系統可從 xxxTech process flow template 建立 instance，並讓 simulation engineer 只針對該 TV/Product 補入站點 value 與資料來源。
 
 ### 4.3 Integration Review
 
@@ -35,8 +35,8 @@ Integration reviewer 可以針對必要欄位留下 review status 與 comment。
 ## 5. V1 範圍
 
 - 建立一套 process flow 描述語言，能描述站點、站點順序、站點欄位與 TV/Product 實際值。
-- 建立代表性的 CoWoS-L process flow template。
-- 建立 MI450 與 GR100 sample instance，示範同一流程下不同 TV/Product 的差異。
+- 建立代表性的 xxxTech process flow template。
+- 建立 aaaTV 與 bbbTV sample instance，示範同一流程下不同 TV/Product 的差異。
 - 提供 UI 操作 process flow template selection、instance creation、process timeline 與 step detail editing。
 - 每個欄位可記錄 value、source、assumption、unknown、attachment reference 與 review status。
 - 已建立的 instance 會保留建立當下使用的流程版本；後續流程更新不會自動改動既有 instance。
@@ -62,9 +62,9 @@ Integration reviewer 可以針對必要欄位留下 review status 與 comment。
 
 建議時程為 8-12 週。
 
-- Week 1-2：確認 process flow 描述語言、代表性站點、review rule 與 CoWoS-L representative flow。
+- Week 1-2：確認 process flow 描述語言、代表性站點、review rule 與 xxxTech representative flow。
 - Week 3-5：建立 process flow template/instance UI 與 local data workflow。
-- Week 6-8：導入 MI450、GR100 sample instance，進行 simulation team trial。
+- Week 6-8：導入 aaaTV、bbbTV sample instance，進行 simulation team trial。
 - Week 9-10：integration review 試跑，收斂欄位命名與站點粒度。
 - Week 11-12：整理主管報告、效益評估與下一階段 roadmap。
 
@@ -72,10 +72,10 @@ Integration reviewer 可以針對必要欄位留下 review status 與 comment。
 
 - Simulation engineer 可在 30 分鐘內由既有 process flow template 建立新 TV/Product flow skeleton。
 - 任一 process station 都能查到當下 input/output state、source、assumption 與 unknown。
-- CoWoS-L、CoWoS-S、CoWoS-R 可共用語意一致的 molding station 定義。
+- xxxTech、yyyTech、zzzTech 可共用語意一致的 molding station 定義。
 - Integration reviewer 可針對必要欄位留下 review status 與 comment。
 - 已建立 instance 能追溯其建立時使用的流程版本。
-- 至少完成一個 CoWoS-L process flow 與兩個 TV/Product instance 的端到端示範。
+- 至少完成一個 xxxTech process flow 與兩個 TV/Product instance 的端到端示範。
 
 ## 10. 風險與對策
 

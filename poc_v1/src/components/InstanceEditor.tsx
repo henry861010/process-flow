@@ -147,7 +147,7 @@ export function InstanceEditor({ catalog, template, onDone, onCancel }: Instance
         <Input
           className="mt-2 h-10"
           id="product-name"
-          placeholder="Example: MI450"
+          placeholder="Example: xxx TV"
           value={productName}
           onChange={(event) => setProductName(event.target.value)}
         />

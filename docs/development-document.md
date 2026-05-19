@@ -9,8 +9,8 @@
 V1 是一個 template/instance workspace。
 
 - 全域 `ProcessStepTemplate` 定義可共用 process station，例如 molding、underfill、die attach。
-- Process flow template 定義封裝技術平台的標準 flow，例如 CoWoS-L，並透過 step refs 引用 global step template。
-- TV/Product instance 綁定 process flow template version，例如 MI450 使用 CoWoS-L v1.0.0。
+- Process flow template 定義封裝技術平台的標準 flow，例如 xxxTech，並透過 step refs 引用 global step template。
+- TV/Product instance 綁定 process flow template version，例如 aaaTV 使用 xxxTech v1.0.0。
 - Simulation engineer 在 instance 中填入站點 value、source、assumption、unknown 與 attachment references。
 - Integration reviewer 針對 required 或 review-required fields 留下 review status 與 comment。
 
@@ -34,12 +34,12 @@ V1 採 static web app 形態，資料存在 browser `localStorage`，並提供 J
 
 本章可以先用一個實際 process lifecycle 來理解資料結構關係。核心原則是：template 定義「可以填什麼與如何驗證」，instance 保存「某個 TV/Product 實際填了什麼、來源是什麼、審核結果是什麼」。
 
-以 `MI450` 使用 `CoWoS-L v1.0.0` 為例：
+以 `aaaTV` 使用 `xxxTech v1.0.0` 為例：
 
 1. Integration/platform owner 建立全域 `ProcessStepTemplate`，例如 `Molding / Encapsulation`。它代表一個可重複使用的 process station。
 2. `ProcessStepTemplate.fieldDefinitions[]` 直接內嵌多個 `FieldDefinition`，例如 `mold_material`、`mold_thickness`、`post_mold_stack_thickness`。`FieldDefinition` 只描述欄位語意、value type、UI control、validation、reference 或 computed rule，不保存任何產品實際值。
-3. Flow owner 建立 `ProcessFlowTemplate`，例如 `CoWoS-L v1.0.0`。Flow template 不複製欄位、不填 value，只用 `stepRefs[]` 引用已發布的 process step template version，並決定站點順序。
-4. Simulation engineer 建立 `ProcessFlowInstance`，例如 `MI450` instance。Instance 綁定並鎖定 `processFlowTemplateId` 與 `processFlowTemplateVersion`，避免 template 後續變更靜默影響既有資料。
+3. Flow owner 建立 `ProcessFlowTemplate`，例如 `xxxTech v1.0.0`。Flow template 不複製欄位、不填 value，只用 `stepRefs[]` 引用已發布的 process step template version，並決定站點順序。
+4. Simulation engineer 建立 `ProcessFlowInstance`，例如 `aaaTV` instance。Instance 綁定並鎖定 `processFlowTemplateId` 與 `processFlowTemplateVersion`，避免 template 後續變更靜默影響既有資料。
 5. 系統依 instance 綁定的 flow template resolve `stepRefs[]`，並在 instance 中建立對應的 `StepValueSet[]`。每個 `StepValueSet` 對應 flow 裡的一個 `stepRefId`。
 6. 使用者在某個 `StepValueSet.fieldValues[]` 中填入 `FieldValue`。`FieldValue.fieldId` 指向該 step template version 中的 `FieldDefinition.id`，而 `FieldValue.value` 的形狀由該 definition 的 `valueType` 決定。
 7. 使用者或系統也在 `FieldValue` 上保存 `source`、`assumption`、`unknown`、`attachmentRefs`。Integration reviewer 將審核結果寫入同一個 `FieldValue.reviewRecords[]`。
@@ -48,9 +48,9 @@ V1 採 static web app 形態，資料存在 browser `localStorage`，並提供 J
 flowchart TD
   stepTemplate["ProcessStepTemplate<br/>global reusable station"]
   fieldDefinition["FieldDefinition[]<br/>field semantics, validation, UI control"]
-  flowTemplate["ProcessFlowTemplate<br/>CoWoS-L v1.0.0"]
+  flowTemplate["ProcessFlowTemplate<br/>xxxTech v1.0.0"]
   stepRef["StepRef[]<br/>ordered step references"]
-  instance["ProcessFlowInstance<br/>MI450"]
+  instance["ProcessFlowInstance<br/>aaaTV"]
   valueSet["StepValueSet[]<br/>one value set per stepRef"]
   fieldValue["FieldValue[]<br/>actual value, source, unknown, review"]
   reviewRecord["ReviewRecord[]<br/>field-level reviewer decision"]
@@ -731,7 +731,7 @@ RDL repeatable field group 範例：
 
 `id` 是系統識別碼、DB key 或不可變 reference key，用於 API、instance binding 與資料庫關聯，例如 `flow_tpl_cowos_l`。  
 
-`name` 是人可讀的 package technology name，例如 `CoWoS-L`。UI、報表與 reviewer 溝通應顯示 `name`，但資料關聯應使用 `id`。  
+`name` 是人可讀的 package technology name，例如 `xxxTech`。UI、報表與 reviewer 溝通應顯示 `name`，但資料關聯應使用 `id`。  
 
 `description` 描述此process flow technology用途
 
@@ -1175,7 +1175,7 @@ Supporting allowed values：
   "processFlowTemplates": [
     {
       "id": "flow_tpl_cowos_l",
-      "name": "CoWoS-L",
+      "name": "xxxTech",
       "version": "1.0.0",
       "owner": "integration.platform",
       "status": "published",
@@ -1191,8 +1191,8 @@ Supporting allowed values：
   ],
   "processFlowInstances": [
     {
-      "id": "inst_mi450",
-      "productName": "MI450",
+      "id": "inst_aaaTV",
+      "productName": "aaaTV",
       "lifecycleStatus": "pendingIntegrationReview",
       "processFlowTemplateId": "flow_tpl_cowos_l",
       "processFlowTemplateVersion": "1.0.0",
@@ -1207,8 +1207,8 @@ Supporting allowed values：
               "value": 450.5,
               "source": {
                 "type": "spec",
-                "ref": "MI450 pre-mold stack v0.2",
-                "label": "MI450 pre-mold stack v0.2"
+                "ref": "aaaTV pre-mold stack v0.2",
+                "label": "aaaTV pre-mold stack v0.2"
               },
               "assumption": null,
               "unknown": false,
@@ -1253,8 +1253,8 @@ Supporting allowed values：
               "value": 750.25,
               "source": {
                 "type": "spec",
-                "ref": "MI450 package outline v0.3",
-                "label": "MI450 package outline v0.3"
+                "ref": "aaaTV package outline v0.3",
+                "label": "aaaTV package outline v0.3"
               },
               "assumption": null,
               "unknown": false,
@@ -1273,8 +1273,8 @@ Supporting allowed values：
               "value": "baseline",
               "source": {
                 "type": "integrationNote",
-                "ref": "MI450 molding integration note",
-                "label": "MI450 molding integration note"
+                "ref": "aaaTV molding integration note",
+                "label": "aaaTV molding integration note"
               },
               "assumption": null,
               "unknown": false,
@@ -1296,7 +1296,7 @@ Supporting allowed values：
             },
             {
               "fieldId": "mold_process_note",
-              "value": "Use current CoWoS-L baseline molding recipe until integration publishes the final cure profile.",
+              "value": "Use current xxxTech baseline molding recipe until integration publishes the final cure profile.",
               "source": {
                 "type": "manualInput",
                 "ref": "simulation-engineer-note",
@@ -1390,10 +1390,10 @@ Supporting allowed values：
 
 - 可建立 global molding process step template。
 - 建立 process step template 時可指定 `categoryId`，並可用 bonding 下的 BGA bump、C4 bump、micro bump、hybrid bump 等分類瀏覽。
-- CoWoS-L、CoWoS-S、CoWoS-R 可引用同一個 molding step template version。
-- 可建立 CoWoS-L process flow template，並由 stepRefs resolve 出完整 flow。
+- xxxTech、CoWoS-S、CoWoS-R 可引用同一個 molding step template version。
+- 可建立 xxxTech process flow template，並由 stepRefs resolve 出完整 flow。
 - 每個 step ref 都有穩定 `stepRefId`，instance value 可正確對應到 flow 中的站點引用。
-- 可由 CoWoS-L process flow template 建立 MI450 與 GR100 instance。
+- 可由 xxxTech process flow template 建立 aaaTV 與 GR100 instance。
 - Instance 建立後保留 process flow template version lock。
 - 使用者可在 UI 中依 `controlType` 填寫 text、number、checkbox、select、referenceSelect value。
 - Reference select 可使用 mock external options 展示外部 DB/ref 選項。
