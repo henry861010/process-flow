@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DemoResetButton } from "@/components/DemoResetButton";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import "@xyflow/react/dist/style.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

@@ -33,6 +33,91 @@ textarea {
   font: inherit;
 }
 
+.process-flow-whiteboard {
+  isolation: isolate;
+  position: relative;
+}
+
+.process-flow-whiteboard .react-flow {
+  background:
+    linear-gradient(90deg, rgba(15, 118, 110, 0.08) 0 1px, transparent 1px 100%),
+    linear-gradient(180deg, rgba(15, 118, 110, 0.08) 0 1px, transparent 1px 100%),
+    #f8fafc;
+  background-size: 80px 80px;
+  transform: translateZ(0);
+}
+
+.process-flow-whiteboard .react-flow__renderer,
+.process-flow-whiteboard .react-flow__nodes {
+  backface-visibility: hidden;
+}
+
+.process-flow-whiteboard .react-flow__node {
+  will-change: transform;
+}
+
+.process-flow-whiteboard .react-flow__node.dragging {
+  z-index: 30 !important;
+}
+
+.process-flow-whiteboard .react-flow__pane {
+  cursor: default;
+}
+
+.process-flow-handle {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  background: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.22);
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.process-flow-handle-source {
+  right: -8px;
+}
+
+.process-flow-handle-target {
+  left: -8px;
+}
+
+.process-flow-handle.react-flow__handle-connecting {
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 0 0 6px rgba(20, 184, 166, 0.18);
+}
+
+.process-flow-handle.react-flow__handle-valid {
+  background: #10b981;
+  box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.22);
+}
+
+.process-flow-handle.react-flow__handle-invalid {
+  background: #e11d48;
+  box-shadow: 0 0 0 8px rgba(225, 29, 72, 0.18);
+}
+
+.process-step-node:has(.react-flow__handle-valid) {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.2);
+}
+
+.initial-flow-node:has(.react-flow__handle-valid) {
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.18);
+}
+
+.process-step-node--dragging {
+  transition: none;
+}
+
+.process-step-node--dragging .process-flow-handle,
+.process-flow-whiteboard .react-flow__node.dragging .process-flow-handle {
+  box-shadow: none;
+  visibility: hidden;
+}
+
 @layer base {
   .theme {
     --font-heading: ui-sans-serif, system-ui, sans-serif;

@@ -45,7 +45,7 @@ export function CreateMenu({
               Create new technology
             </span>
             <span className="mt-1 block text-xs leading-5 text-slate-500">
-              Compose steps, fill parameters, and optionally save the new template.
+              Compose steps, fill parameters, and save a process JSON draft.
             </span>
           </span>
         </DropdownMenuItem>
